@@ -1,0 +1,28 @@
+{
+  "eslint.enable": true,
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact"
+  ],
+  "eslint.experimental.useFlatConfig": true,
+  "eslint.useESLintClass": true,
+  "eslint.run": "onType",
+  "eslint.lintTask.enable": true,
+  "eslint.format.enable": true,
+  "eslint.codeActionsOnSave.mode": "all",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "eslint.workingDirectories": [
+    {
+      "mode": "auto"
+    }
+  ],
+  "javascript.validate.enable": true,
+  "javascript.suggestionActions.enabled": true,
+  "typescript.validate.enable": false,
+  "files.associations": {
+    "*.js": "javascript",
+    "*.jsx": "javascriptreact"
+  }
+}
