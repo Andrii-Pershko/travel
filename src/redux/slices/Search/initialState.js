@@ -18,4 +18,7 @@ export const initialState = {
     hotels: [],
     loadingHotels: false,
     errorHotels: null,
+
+    cancelingSearchPrices: false,
+    errorCancelingSearchPrices: null,
 }

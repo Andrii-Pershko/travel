@@ -68,12 +68,13 @@ export const handlePendingSearchPricesWithPolling = (state) => {
     state.errorSearchPrices = null;
     state.retryCount = 0;
     state.tours = [];
+    state.hotels = []; // Очищаємо готелі при новому пошуку
     state.hasSearched = true;
 };
 
 export const handleFulfilledSearchPricesWithPolling = (state, action) => {
     state.loadingSearchPrices = false;
-    // Convert object of objects to array if needed
+
     const prices = action.payload.prices || [];
     state.tours = Array.isArray(prices) ? prices : Object.values(prices);
     state.token = action.payload.token;
@@ -84,29 +85,35 @@ export const handleFulfilledSearchPricesWithPolling = (state, action) => {
 
 export const handleRejectedSearchPricesWithPolling = (state, action) => {
     state.loadingSearchPrices = false;
-    state.errorSearchPrices = action.payload;
-    state.retryCount = (state.retryCount || 0) + 1;
+    // Якщо пошук був скасований, не показуємо помилку
+    if (action.payload?.status === 'CANCELLED') {
+        state.errorSearchPrices = null;
+        state.token = null;
+    } else {
+        state.errorSearchPrices = action.payload;
+        state.retryCount = (state.retryCount || 0) + 1;
+    }
     state.hasSearched = true;
 };
 
 export const handlePendingGetHotels = (state) => {
     state.loadingHotels = true;
     state.errorHotels = null;
+    state.hotels = []; // Очищаємо готелі перед новим запитом
 };
 
 export const handleFulfilledGetHotels = (state, action) => {
     state.loadingHotels = false;
-    // API повертає об'єкт об'єктів через getHotelsByCountryID
+
     const hotelsData = action.payload;
-    
-    // Конвертуємо об'єкт об'єктів в масив
+
     let hotelsArray = [];
     if (Array.isArray(hotelsData)) {
         hotelsArray = hotelsData;
     } else if (hotelsData && typeof hotelsData === 'object') {
         hotelsArray = Object.values(hotelsData);
     }
-    
+
     state.hotels = hotelsArray;
     state.errorHotels = null;
 };
@@ -114,4 +121,27 @@ export const handleFulfilledGetHotels = (state, action) => {
 export const handleRejectedGetHotels = (state, action) => {
     state.loadingHotels = false;
     state.errorHotels = action.payload;
+};
+
+export const handlePendingStopSearchPrices = (state) => {
+    state.cancelingSearchPrices = true;
+    state.errorCancelingSearchPrices = null;
+};
+
+export const handleFulfilledStopSearchPrices = (state) => {
+    state.cancelingSearchPrices = false;
+    state.errorCancelingSearchPrices = null;
+    state.token = null;
+    state.waitUntil = null;
+    state.tours = [];
+    state.hasSearched = false;
+    state.retryCount = 0;
+    state.hotels = [];
+    state.loadingHotels = false;
+    state.errorHotels = null;
+};
+
+export const handleRejectedStopSearchPrices = (state, action) => {
+    state.cancelingSearchPrices = false;
+    state.errorCancelingSearchPrices = action.payload;
 };

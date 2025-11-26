@@ -36,13 +36,14 @@ export default function DropDownList({ isOpenDropDown, setSearch, search, select
     return (
         <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto animate-fade-in z-10">
 
-            {(selectedType !== "country" && search !== "" )?
-                 searchGeo.length > 0 ? searchGeo.map((item) => (
+            {(selectedType !== "country" && search !== "") ?
+                searchGeo.length > 0 ? searchGeo.map((item) => (
                     <div
                         onMouseDown={() => {
+                            console.log("item", searchGeo)
                             setSelectedType(item.type)
                             setSearch(item.name)
-                            setCountryID(item.id)
+                            setCountryID(item.countryId)
                         }}
                         key={item.id}
                         className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors duration-150 border-b border-gray-100 last:border-b-0"

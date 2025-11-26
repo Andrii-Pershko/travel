@@ -20,10 +20,6 @@ export const selectHotels = (state) => {
     const hotels = state.search.hotels;
     const countries = state.search.countries;
 
-    console.log("SELECTOR tours", tours)
-    console.log("SELECTOR hotels", hotels)
-    console.log("SELECTOR countries", countries)
-
     if (tours.length === 0 || hotels.length === 0) {
         return [];
     }
@@ -31,7 +27,7 @@ export const selectHotels = (state) => {
     const preparedHotelInfo = tours.map((tour) => {
 
         const hotel = hotels.find((hotel) => hotel.id === Number(tour.hotelID));
-        const country = countries.find((country) => country.name === hotel.countryName);
+        const country = countries.find((country) => country.name === hotel?.countryName);
 
         return {
             id: tour.id,
@@ -40,7 +36,7 @@ export const selectHotels = (state) => {
             startDate: tour.startDate,
             endDate: tour.endDate,
             hotel: hotel,
-            flagCountry: country.flag,
+            flagCountry: country?.flag,
         }
     })
 
@@ -48,3 +44,5 @@ export const selectHotels = (state) => {
 }
 export const selectLoadingHotels = (state) => state.search.loadingHotels;
 export const selectErrorHotels = (state) => state.search.errorHotels;
+export const selectCancelingSearchPrices = (state) => state.search.cancelingSearchPrices;
+export const selectErrorCancelingSearchPrices = (state) => state.search.errorCancelingSearchPrices;

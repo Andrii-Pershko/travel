@@ -1,8 +1,9 @@
-import { getCountries, getSearchGeo, searchPricesWithPolling, selectLoadingSearchGeo, selectLoadingSearchPrices, selectErrorSearchPrices, selectTours, selectHasSearched, getHotelsOperation, selectHotels } from "@/redux/slices/Search"
-import { useState } from "react"
+import { getCountries, getSearchGeo, searchPricesWithPolling, selectLoadingSearchGeo, selectLoadingSearchPrices, selectErrorSearchPrices, selectTours, selectHasSearched, getHotelsOperation, selectHotels, stopSearchPricesOperation, selectToken, selectCancelingSearchPrices, selectLoadingHotels } from "@/redux/slices/Search"
+import { useState, useRef } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { useNavigate } from "react-router-dom"
 import DropDownList from "./DropDownList"
+import TourCard from "../TourCard/TourCard"
 
 export default function SearchInput() {
     const [search, setSearch] = useState('')
@@ -12,15 +13,19 @@ export default function SearchInput() {
 
     const loadingSearchGeo = useSelector(selectLoadingSearchGeo)
     const loadingSearchPrices = useSelector(selectLoadingSearchPrices)
+    const loadingHotels = useSelector(selectLoadingHotels)
     const errorSearchPrices = useSelector(selectErrorSearchPrices)
     const tours = useSelector(selectTours)
     const hasSearched = useSelector(selectHasSearched)
     const hotels = useSelector(selectHotels)
+    const activeToken = useSelector(selectToken)
+    const cancelingSearchPrices = useSelector(selectCancelingSearchPrices)
 
-    console.log("hotels", hotels)
+    console.log("ACTIVE TOKEN", activeToken)
 
     const dispatch = useDispatch()
     const navigate = useNavigate()
+    const currentSearchThunk = useRef(null)
 
     const handleSearch = () => {
         dispatch(getCountries())
@@ -36,12 +41,33 @@ export default function SearchInput() {
         if (!countryID) {
             return
         }
-        const result = await dispatch(searchPricesWithPolling(countryID))
 
-        if (result.meta.requestStatus === 'fulfilled') {
-            dispatch(getHotelsOperation(countryID))
+        // Якщо є активний пошук, спочатку скасовуємо його
+        if (activeToken) {
+            // Скасовуємо попередній пошук через abort() якщо він ще активний
+            if (currentSearchThunk.current) {
+                currentSearchThunk.current.abort()
+            }
+
+            // Викликаємо stopSearchPrices на сервері
+            await dispatch(stopSearchPricesOperation(activeToken))
         }
 
+        // Запускаємо новий пошук і зберігаємо посилання на thunk
+        const searchThunk = dispatch(searchPricesWithPolling(countryID))
+        currentSearchThunk.current = searchThunk
+
+        const result = await searchThunk
+
+        // Перевіряємо чи пошук не був скасований
+        if (result.meta.requestStatus === 'fulfilled' && result.payload?.status !== 'CANCELLED') {
+            await dispatch(getHotelsOperation(countryID))
+        }
+
+        // Очищаємо посилання на thunk після завершення
+        if (currentSearchThunk.current === searchThunk) {
+            currentSearchThunk.current = null
+        }
     }
 
     const handleSearchGeo = (e) => {
@@ -64,8 +90,8 @@ export default function SearchInput() {
                             placeholder="Пошук"
                             className="w-full p-2 bg-white outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500 rounded-md"
                         />
-                        <button disabled={loadingSearchGeo || loadingSearchPrices} type="submit" className="cursor-pointer w-[150px] bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed">
-                            {loadingSearchPrices ? 'Пошук...' : 'Пошук'}
+                        <button disabled={loadingSearchGeo || loadingSearchPrices || cancelingSearchPrices} type="submit" className="cursor-pointer w-[150px] bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed">
+                            {cancelingSearchPrices ? 'Скасування...' : loadingSearchPrices ? 'Пошук...' : 'Пошук'}
                         </button>
                     </form>
                     <DropDownList setCountryID={setCountryID} selectedType={selectedType} setSelectedType={setSelectedType} search={search} isOpenDropDown={isOpenDropDown} setSearch={setSearch} />
@@ -75,21 +101,36 @@ export default function SearchInput() {
             </div>
             <div className="w-full mt-[50px] max-w-[700px] p-[25px] mx-auto border border-gray-200 rounded-md shadow-lg">
 
-                {/*default state - показуємо тільки якщо ще не було пошуку*/}
-                {!hasSearched && !loadingSearchPrices && !errorSearchPrices && (
+                {!hasSearched && !loadingSearchPrices && !cancelingSearchPrices && !errorSearchPrices && activeToken === null && (
                     <div>
                         <div className="text-center text-gray-600">Скористайтесь пошуком для пошуку турів</div>
                     </div>
                 )}
 
-                {/* Loading state */}
-                {loadingSearchPrices && (
+                {(loadingSearchPrices || cancelingSearchPrices) && (
                     <div>
-                        <div className="text-center text-gray-600">Пошук турів...</div>
+                        <div className="text-center text-gray-600">{cancelingSearchPrices ? 'Скасування...' : 'Пошук турів...'}</div>
                     </div>
                 )}
 
-                {/* Error state */}
+                {!loadingSearchPrices && loadingHotels && tours && tours.length > 0 && (
+                    <div>
+                        <div className="text-center text-gray-600">Завантаження готелів...</div>
+                    </div>
+                )}
+
+                {!loadingSearchPrices && !loadingHotels && hasSearched && tours && tours.length > 0 && (!hotels || hotels.length === 0) && !errorSearchPrices && (
+                    <div>
+                        <div className="text-center text-gray-600">Завантаження готелів...</div>
+                    </div>
+                )}
+
+                {!loadingSearchPrices && !loadingHotels && hasSearched && tours && tours.length === 0 && activeToken !== null && !errorSearchPrices && (
+                    <div>
+                        <div className="text-center text-gray-600">Завантаження...</div>
+                    </div>
+                )}
+
                 {errorSearchPrices && !loadingSearchPrices && (
                     <div>
                         <div className="text-center text-red-600 font-medium">Помилка пошуку</div>
@@ -103,70 +144,22 @@ export default function SearchInput() {
                     </div>
                 )}
 
-                {/* Empty state */}
-                {hasSearched && !loadingSearchPrices && !errorSearchPrices && tours && tours.length === 0 && (
+                {hasSearched && !loadingSearchPrices && !loadingHotels && !cancelingSearchPrices && !errorSearchPrices && tours && tours.length === 0 && hotels && hotels.length === 0 && activeToken === null && (
                     <div>
                         <div className="text-center text-gray-600">За вашим запитом турів не знайдено</div>
                     </div>
                 )}
 
-                {!loadingSearchPrices && !errorSearchPrices && tours && tours.length > 0 && hotels && hotels.length > 0 && (
+                {!loadingSearchPrices && !loadingHotels && !errorSearchPrices && tours && tours.length > 0 && hotels && hotels.length > 0 && (
                     <div>
                         <div className="text-center text-green-600 font-medium mb-4">Знайдено турів: {tours.length}</div>
                         <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-4">
                             {hotels.map((tour) => (
-                                <div
+                                <TourCard
                                     key={tour.id}
+                                    tour={tour}
                                     onClick={() => navigate(`/tour?priceId=${tour.id}&hotelId=${tour.hotel.id}`)}
-                                    className="bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-200 cursor-pointer"
-                                >
-
-                                    <div className="relative w-full h-48 overflow-hidden">
-                                        <img
-                                            src={tour.hotel.img}
-                                            alt={tour.hotel.name}
-                                            className="w-full h-full object-cover"
-                                        />
-
-                                        {tour.flagCountry && (
-                                            <div className="absolute top-2 right-2">
-                                                <img
-                                                    src={tour.flagCountry}
-                                                    alt={`${tour.hotel.countryName} flag`}
-                                                    className="w-8 h-6 object-cover rounded shadow-md"
-                                                />
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div className="p-4">
-                                        <h3 className="text-lg font-semibold text-gray-800 mb-2 line-clamp-2">
-                                            {tour.hotel.name}
-                                        </h3>
-                                        <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
-                                            <span>{tour.hotel.countryName}</span>
-                                            <span>•</span>
-                                            <span>{tour.hotel.cityName}</span>
-                                        </div>
-
-                                        <div className="mb-3">
-                                            <div className="text-2xl font-bold text-green-600">
-                                                {tour.amount} {tour.currency.toUpperCase()}
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center gap-4 text-sm text-gray-500 border-t border-gray-100 pt-3">
-                                            <div className="flex flex-col">
-                                                <span className="text-xs text-gray-400">Від</span>
-                                                <span className="font-medium">{tour.startDate}</span>
-                                            </div>
-                                            <div className="flex flex-col">
-                                                <span className="text-xs text-gray-400">До</span>
-                                                <span className="font-medium">{tour.endDate}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                />
                             ))}
                         </div>
                     </div>
