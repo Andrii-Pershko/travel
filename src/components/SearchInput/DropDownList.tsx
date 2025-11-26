@@ -40,7 +40,6 @@ export default function DropDownList({ isOpenDropDown, setSearch, search, select
                 searchGeo.length > 0 ? searchGeo.map((item) => (
                     <div
                         onMouseDown={() => {
-                            console.log("item", searchGeo)
                             setSelectedType(item.type)
                             setSearch(item.name)
                             setCountryID(item.countryId)

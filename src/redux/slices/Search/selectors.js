@@ -1,3 +1,5 @@
+import { createSelector } from 'reselect';
+
 export const selectCountries = (state) => state.search.countries;
 export const selectLoading = (state) => state.search.loading;
 export const selectError = (state) => state.search.error;
@@ -15,33 +17,38 @@ export const selectTours = (state) => state.search.tours;
 export const selectRetryCount = (state) => state.search.retryCount;
 export const selectHasSearched = (state) => state.search.hasSearched;
 
-export const selectHotels = (state) => {
-    const tours = state.search.tours;
-    const hotels = state.search.hotels;
-    const countries = state.search.countries;
+const selectHotelsRaw = (state) => state.search.hotels;
+const selectCountriesRaw = (state) => state.search.countries;
 
-    if (tours.length === 0 || hotels.length === 0) {
-        return [];
-    }
-
-    const preparedHotelInfo = tours.map((tour) => {
-
-        const hotel = hotels.find((hotel) => hotel.id === Number(tour.hotelID));
-        const country = countries.find((country) => country.name === hotel?.countryName);
-
-        return {
-            id: tour.id,
-            amount: tour.amount,
-            currency: tour.currency,
-            startDate: tour.startDate,
-            endDate: tour.endDate,
-            hotel: hotel,
-            flagCountry: country?.flag,
+export const selectHotels = createSelector(
+    [selectTours, selectHotelsRaw, selectCountriesRaw],
+    (tours, hotels, countries) => {
+        if (tours === null) {
+            return null;
         }
-    })
 
-    return preparedHotelInfo;
-}
+        if (tours.length === 0 || hotels.length === 0) {
+            return [];
+        }
+
+        const preparedHotelInfo = tours.map((tour) => {
+            const hotel = hotels.find((hotel) => hotel.id === Number(tour.hotelID));
+            const country = countries.find((country) => country.name === hotel?.countryName);
+
+            return {
+                id: tour.id,
+                amount: tour.amount,
+                currency: tour.currency,
+                startDate: tour.startDate,
+                endDate: tour.endDate,
+                hotel: hotel,
+                flagCountry: country?.flag,
+            }
+        })
+
+        return preparedHotelInfo;
+    }
+);
 export const selectLoadingHotels = (state) => state.search.loadingHotels;
 export const selectErrorHotels = (state) => state.search.errorHotels;
 export const selectCancelingSearchPrices = (state) => state.search.cancelingSearchPrices;

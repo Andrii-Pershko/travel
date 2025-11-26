@@ -52,7 +52,7 @@ export default function TourDetails() {
     }, [hasData, price, hotel])
 
     return (
-        <div className="w-full max-w-6xl mx-auto p-6">
+        <div className="w-full max-w-6xl mx-auto p-6 w-full max-w-[700px]">
             <h1 className="text-3xl font-bold mb-6 text-gray-800">Деталі туру</h1>
 
             {isLoading && <LoadingSpinner />}

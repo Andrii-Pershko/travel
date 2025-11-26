@@ -97,6 +97,7 @@ export const searchPricesWithPolling = createAsyncThunk(
             checkCancelled();
 
             const startResponse = await startSearchPrices(countryID);
+
             if (!startResponse.ok) {
                 const errorData = await startResponse.json();
                 return rejectWithValue({ ...errorData, status: startResponse.status });
@@ -104,7 +105,6 @@ export const searchPricesWithPolling = createAsyncThunk(
 
             const { token, waitUntil: waitUntilTime } = await startResponse.json();
 
-            // Зберігаємо токен в state одразу після отримання через dispatch
             dispatch(startSearchPricesOperation.fulfilled({ token, waitUntil: waitUntilTime }));
 
             checkCancelled();
@@ -118,13 +118,21 @@ export const searchPricesWithPolling = createAsyncThunk(
                     checkCancelled();
 
                     const getResponse = await getSearchPrices(token);
+                    const responseData = await getResponse.json();
 
                     if (getResponse.ok) {
-                        const data = await getResponse.json();
-                        return { token, prices: data.prices || [] };
+                        // Конвертуємо prices в масив, якщо це об'єкт
+                        const prices = responseData.prices;
+                        let pricesArray = [];
+                        if (Array.isArray(prices)) {
+                            pricesArray = prices;
+                        } else if (prices && typeof prices === 'object') {
+                            pricesArray = Object.values(prices);
+                        }
+                        return { token, prices: pricesArray };
                     }
 
-                    const errorData = await getResponse.json();
+                    const errorData = responseData;
 
                     if (getResponse.status === 425 && errorData.waitUntil) {
                         await waitUntil(errorData.waitUntil);
@@ -144,7 +152,7 @@ export const searchPricesWithPolling = createAsyncThunk(
                         status: getResponse.status
                     });
                 } catch (error) {
-                    // Якщо помилка через скасування, не робимо retry
+
                     if (error.message === 'Search cancelled') {
                         return rejectWithValue({
                             message: 'Search cancelled',

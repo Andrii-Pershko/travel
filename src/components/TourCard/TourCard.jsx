@@ -7,8 +7,6 @@ export default function TourCard({ tour, onClick, className = "" }) {
     const padding = hasDetailedInfo ? "p-6" : "p-4"
     const cursorClass = onClick ? "cursor-pointer" : ""
 
-    console.log("tour", tour)
-
     return (
         <div
             onClick={onClick}
@@ -17,7 +15,7 @@ export default function TourCard({ tour, onClick, className = "" }) {
             <div className={`relative w-full ${imageHeight} overflow-hidden`}>
                 <img
                     src={tour.hotel.img}
-                    alt={tour.hotel.name}
+                    alt={'hotel image'}
                     className="w-full h-full object-cover"
                 />
 
@@ -25,7 +23,7 @@ export default function TourCard({ tour, onClick, className = "" }) {
                     <div className="absolute top-2 right-2">
                         <img
                             src={tour.flagCountry || ""}
-                            alt={`${tour.hotel.countryName} flag`}
+                            alt={`flag`}
                             className="w-8 h-6 object-cover rounded shadow-md"
                         />
                     </div>

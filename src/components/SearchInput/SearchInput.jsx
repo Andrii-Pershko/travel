@@ -10,6 +10,7 @@ export default function SearchInput() {
     const [isOpenDropDown, setIsOpenDropDown] = useState(false)
     const [selectedType, setSelectedType] = useState(null)
     const [countryID, setCountryID] = useState(null)
+    const [isLoading, setIsLoading] = useState(false)
 
     const loadingSearchGeo = useSelector(selectLoadingSearchGeo)
     const loadingSearchPrices = useSelector(selectLoadingSearchPrices)
@@ -21,12 +22,9 @@ export default function SearchInput() {
     const activeToken = useSelector(selectToken)
     const cancelingSearchPrices = useSelector(selectCancelingSearchPrices)
 
-    console.log("ACTIVE TOKEN", activeToken)
-
     const dispatch = useDispatch()
     const navigate = useNavigate()
     const currentSearchThunk = useRef(null)
-
     const handleSearch = () => {
         dispatch(getCountries())
         setIsOpenDropDown(true)
@@ -37,6 +35,7 @@ export default function SearchInput() {
     }
 
     const handleSubmit = async (e) => {
+        setIsLoading(true)
         e.preventDefault()
         if (!countryID) {
             return
@@ -68,9 +67,12 @@ export default function SearchInput() {
         if (currentSearchThunk.current === searchThunk) {
             currentSearchThunk.current = null
         }
+
+        setIsLoading(false)
     }
 
     const handleSearchGeo = (e) => {
+        setCountryID(null)
         setSelectedType(null)
         setSearch(e.target.value)
         dispatch(getSearchGeo(search))
@@ -90,7 +92,7 @@ export default function SearchInput() {
                             placeholder="Пошук"
                             className="w-full p-2 bg-white outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500 rounded-md"
                         />
-                        <button disabled={loadingSearchGeo || loadingSearchPrices || cancelingSearchPrices} type="submit" className="cursor-pointer w-[150px] bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <button disabled={loadingSearchGeo || loadingSearchPrices || cancelingSearchPrices} type="submit" className="cursor-pointer w-[250px] bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed">
                             {cancelingSearchPrices ? 'Скасування...' : loadingSearchPrices ? 'Пошук...' : 'Пошук'}
                         </button>
                     </form>
@@ -113,19 +115,7 @@ export default function SearchInput() {
                     </div>
                 )}
 
-                {!loadingSearchPrices && loadingHotels && tours && tours.length > 0 && (
-                    <div>
-                        <div className="text-center text-gray-600">Завантаження готелів...</div>
-                    </div>
-                )}
-
-                {!loadingSearchPrices && !loadingHotels && hasSearched && tours && tours.length > 0 && (!hotels || hotels.length === 0) && !errorSearchPrices && (
-                    <div>
-                        <div className="text-center text-gray-600">Завантаження готелів...</div>
-                    </div>
-                )}
-
-                {!loadingSearchPrices && !loadingHotels && hasSearched && tours && tours.length === 0 && activeToken !== null && !errorSearchPrices && (
+                {isLoading && (
                     <div>
                         <div className="text-center text-gray-600">Завантаження...</div>
                     </div>
@@ -144,7 +134,7 @@ export default function SearchInput() {
                     </div>
                 )}
 
-                {hasSearched && !loadingSearchPrices && !loadingHotels && !cancelingSearchPrices && !errorSearchPrices && tours && tours.length === 0 && hotels && hotels.length === 0 && activeToken === null && (
+                {!isLoading && hasSearched && !loadingSearchPrices && !loadingHotels && !cancelingSearchPrices && !errorSearchPrices && tours !== null && tours.length === 0 && (!hotels || hotels.length === 0) && (
                     <div>
                         <div className="text-center text-gray-600">За вашим запитом турів не знайдено</div>
                     </div>

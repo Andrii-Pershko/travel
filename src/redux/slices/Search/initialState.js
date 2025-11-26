@@ -9,7 +9,7 @@ export const initialState = {
 
     token: null,
     waitUntil: null,
-    tours: [],
+    tours: null,
     loadingSearchPrices: false,
     errorSearchPrices: null,
     retryCount: 0,

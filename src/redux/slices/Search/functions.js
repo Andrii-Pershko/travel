@@ -68,7 +68,7 @@ export const handlePendingSearchPricesWithPolling = (state) => {
     state.errorSearchPrices = null;
     state.retryCount = 0;
     state.tours = [];
-    state.hotels = []; // Очищаємо готелі при новому пошуку
+    state.hotels = []; 
     state.hasSearched = true;
 };
 
