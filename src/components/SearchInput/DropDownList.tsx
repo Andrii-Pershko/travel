@@ -4,7 +4,7 @@ import HotelIcon from "@/assets/search/hotel.svg"
 import PointIcon from "@/assets/search/point.svg"
 import { useEffect, useState } from "react"
 
-export default function DropDownList({ isOpenDropDown, setSearch, search, selectedType, setSelectedType }) {
+export default function DropDownList({ isOpenDropDown, setSearch, search, selectedType, setSelectedType, setCountryID }) {
 
 
     const countries = useSelector(selectCountries)
@@ -42,6 +42,7 @@ export default function DropDownList({ isOpenDropDown, setSearch, search, select
                         onMouseDown={() => {
                             setSelectedType(item.type)
                             setSearch(item.name)
+                            setCountryID(item.id)
                         }}
                         key={item.id}
                         className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors duration-150 border-b border-gray-100 last:border-b-0"
@@ -64,9 +65,10 @@ export default function DropDownList({ isOpenDropDown, setSearch, search, select
                         onMouseDown={() => {
                             setSelectedType("country")
                             setSearch(country.name)
+                            setCountryID(country.id)
                         }}
                         key={country.id}
-                        className="flex countrys-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors duration-150 border-b border-gray-100 last:border-b-0"
+                        className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors duration-150 border-b border-gray-100 last:border-b-0"
                     >
                         {country.flag && (
                             <img

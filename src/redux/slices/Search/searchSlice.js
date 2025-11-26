@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit"
 import { initialState } from "./initialState"
-import { getCountries, getSearchGeo } from "./operation";
-import { handleFulfilledGetCountries, handleFulfilledGetSearchGeo, handlePendingGetCountries, handlePendingGetSearchGeo, handleRejectedGetCountries, handleRejectedGetSearchGeo } from "./functions";
+import { getCountries, getHotelsOperation, getSearchGeo, getSearchPricesOperation, searchPricesWithPolling, startSearchPricesOperation } from "./operation";
+import { handleFulfilledGetCountries, handleFulfilledGetHotels, handleFulfilledGetSearchGeo, handleFulfilledGetSearchPrices, handleFulfilledSearchPricesWithPolling, handleFulfilledStartSearchPrices, handlePendingGetCountries, handlePendingGetHotels, handlePendingGetSearchGeo, handlePendingGetSearchPrices, handlePendingSearchPricesWithPolling, handlePendingStartSearchPrices, handleRejectedGetCountries, handleRejectedGetHotels, handleRejectedGetSearchGeo, handleRejectedGetSearchPrices, handleRejectedSearchPricesWithPolling, handleRejectedStartSearchPrices } from "./functions";
 
 const searchSlice = createSlice({
     name: "search",
@@ -15,6 +15,18 @@ const searchSlice = createSlice({
             .addCase(getSearchGeo.pending, handlePendingGetSearchGeo)
             .addCase(getSearchGeo.rejected, handleRejectedGetSearchGeo)
             .addCase(getSearchGeo.fulfilled, handleFulfilledGetSearchGeo)
+            .addCase(startSearchPricesOperation.pending, handlePendingStartSearchPrices)
+            .addCase(startSearchPricesOperation.rejected, handleRejectedStartSearchPrices)
+            .addCase(startSearchPricesOperation.fulfilled, handleFulfilledStartSearchPrices)
+            .addCase(getSearchPricesOperation.pending, handlePendingGetSearchPrices)
+            .addCase(getSearchPricesOperation.rejected, handleRejectedGetSearchPrices)
+            .addCase(getSearchPricesOperation.fulfilled, handleFulfilledGetSearchPrices)
+            .addCase(searchPricesWithPolling.pending, handlePendingSearchPricesWithPolling)
+            .addCase(searchPricesWithPolling.rejected, handleRejectedSearchPricesWithPolling)
+            .addCase(searchPricesWithPolling.fulfilled, handleFulfilledSearchPricesWithPolling)
+            .addCase(getHotelsOperation.pending, handlePendingGetHotels)
+            .addCase(getHotelsOperation.rejected, handleRejectedGetHotels)
+            .addCase(getHotelsOperation.fulfilled, handleFulfilledGetHotels)
     },
 });
 
